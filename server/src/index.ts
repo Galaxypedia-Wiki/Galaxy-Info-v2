@@ -15,6 +15,7 @@ import { ServerShips, ServerTurrets } from '@galaxyinfo/ships'
 import { GalaxyInfoClient } from './GalaxyInfoClient'
 import { Galaxypedia } from './Galaxypedia'
 import { GameConstants } from './GameConstants'
+import type {GalaxyInfoWebSocketServer} from "./web/websocket";
 
 require('module-alias/register')
 
@@ -33,6 +34,7 @@ declare global {
     devs: string[]
     staffCommandsWebhook?: WebhookClient
     gameConstants: GameConstants
+    webSocketServer: GalaxyInfoWebSocketServer
   }
 }
 

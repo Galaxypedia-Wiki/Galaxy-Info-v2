@@ -3,6 +3,8 @@ import 'express-async-errors'
 
 import GalaxyInfoWebApi from './api'
 import { apiToken } from './middleware/apiToken'
+import {GalaxyInfoWebSocketServer} from "./websocket";
+import * as http from "node:http";
 
 interface ConstructorArg {
   GalaxyInfo: GalaxyInfo
@@ -42,8 +44,10 @@ export class GalaxyInfoWeb {
       res.end()
     })
 
-    app.listen(config.port, () => {
+    const server: http.Server = app.listen(config.port, () => {
       log('Listening on', config.port)
     })
+
+    this.GalaxyInfo.webSocketServer = new GalaxyInfoWebSocketServer(server)
   }
 }

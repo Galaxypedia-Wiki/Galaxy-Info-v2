@@ -460,6 +460,21 @@ export class ServerShips extends Ships {
   }
 
   async save(ships: SerializedShips, test: boolean) {
+    const oldShips = await this.GalaxyInfo.prisma.keyValue.findUnique({
+      where: {
+        key: test ? this.GalaxyInfo.config.db.kvKeys.serializedTestShips : this.GalaxyInfo.config.db.kvKeys.serializedShips
+      },
+      rejectOnNotFound: true
+    })
+
+    const changedShips = {}
+
+    for (const key in ships) {
+      if (JSON.stringify(ships[key]) !== JSON.stringify(oldShips.value[key])) {
+        changedShips[key] = ships[key]
+      }
+    }
+
     await this.GalaxyInfo.prisma.keyValue.upsert({
       create: {
         key: test ? this.GalaxyInfo.config.db.kvKeys.serializedTestShips : this.GalaxyInfo.config.db.kvKeys.serializedShips,
@@ -472,6 +487,7 @@ export class ServerShips extends Ships {
         key: test ? this.GalaxyInfo.config.db.kvKeys.serializedTestShips : this.GalaxyInfo.config.db.kvKeys.serializedShips
       }
     })
+
     const otherShips = (await this.GalaxyInfo.prisma.keyValue.findUnique({
       where: {
         key: test ? this.GalaxyInfo.config.db.kvKeys.serializedShips : this.GalaxyInfo.config.db.kvKeys.serializedTestShips
@@ -479,5 +495,12 @@ export class ServerShips extends Ships {
       rejectOnNotFound: true
     })).value
     await super.load({ ...ships, ...otherShips })
+    
+    for (const key in changedShips) {
+      this.GalaxyInfo.websocketServer.broadcast(JSON.stringify({
+        type: 'shipUpdate',
+        newData: changedShips[key]
+      }))
+    }
   }
 }
